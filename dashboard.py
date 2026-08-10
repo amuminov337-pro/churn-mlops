@@ -100,8 +100,6 @@ if st.button("Predict"):
 
         if risk == "high":
             st.error(f"Yuqori risk ({risk})")
-        elif risk == "medium":
-            st.warning(f"O'rtacha risk ({risk})")
         else:
             st.success(f"Past risk ({risk})")
 

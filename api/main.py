@@ -42,12 +42,8 @@ app.add_middleware(
 
 
 def _risk_label(probability: float) -> str:
-    """Churn ehtimolini low/medium/high toifalariga ajratadi."""
-    if probability >= 0.66:
-        return "high"
-    if probability >= 0.33:
-        return "medium"
-    return "low"
+    """Churn ehtimolini THRESHOLD asosida high/low toifalariga ajratadi (will_churn bilan bir xil chegara)."""
+    return "high" if probability >= THRESHOLD else "low"
 
 
 def _score(customers: List[Customer]) -> List[PredictResponse]:
