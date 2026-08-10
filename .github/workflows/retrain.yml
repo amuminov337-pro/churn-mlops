@@ -1,0 +1,43 @@
+name: Weekly Retrain
+
+on:
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  retrain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Train model
+        run: python src/train.py
+
+      - name: Check ROC-AUC gate
+        run: |
+          python -c "import json,sys; m=json.load(open('models/metrics.json')); ra=m['roc_auc']; print(f'roc_auc={ra}'); sys.exit(0 if ra>=0.83 else 1)"
+
+      - name: Commit retrained model
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add models/model.pkl models/metrics.json
+          git commit -m "chore: weekly retrain [skip ci]" || echo "no changes"
+          git pull --rebase
+          git push
+
+      - name: Trigger Render deploy
+        if: ${{ secrets.RENDER_DEPLOY_HOOK_URL != '' }}
+        run: curl -fsS -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
