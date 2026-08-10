@@ -1,0 +1,15 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+.env
+mlruns/
+.pytest_cache/
+.ruff_cache/
+node_modules/
+.next/
+*.egg-info/
+.DS_Store
+
+# DIQQAT: data/*.csv va models/*.pkl ATAYLAB ignore qilinmagan.
+# Ular repo'da bo'lishi kerak — CI va Docker image ularga tayanadi.
