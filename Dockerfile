@@ -16,4 +16,4 @@ ENV MODEL_PATH=models/model.pkl
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "uvicorn main:app --app-dir api --host 0.0.0.0 --port ${PORT:-8000}"]

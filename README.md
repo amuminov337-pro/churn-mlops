@@ -57,7 +57,7 @@ pytest
 
 API (lokal, reload bilan):
 ```powershell
-uvicorn api.main:app --reload
+uvicorn main:app --app-dir api --reload
 ```
 
 Dashboard:

@@ -19,7 +19,7 @@ log'iga ishoniladi. Shu sabab quyidagi tekshiruvlar **lokal** darajada, docker's
 
 2. **`/health` lokalda javob beradi**:
    ```powershell
-   uvicorn api.main:app --reload
+   uvicorn main:app --app-dir api --reload
    ```
    so'ng `/health` endpoint'iga so'rov yuborib, 200 javob qaytarishini tasdiqlash.
 
@@ -33,7 +33,7 @@ log'iga ishoniladi. Shu sabab quyidagi tekshiruvlar **lokal** darajada, docker's
 
 5. **Dockerfile yo'llari to'g'ri**: `Dockerfile` dagi `COPY`/`WORKDIR`/`CMD` yo'llari haqiqiy
    loyiha strukturasiga mos ekanini ko'zdan kechirish (masalan `api/`, `src/`, `models/`
-   nusxalanishi, `uvicorn api.main:app` to'g'ri module path'ga ishora qilishi). **Lokal build
+   nusxalanishi, `uvicorn main:app --app-dir api` to'g'ri module path'ga ishora qilishi). **Lokal build
    qilinmaydi** — bu tekshiruv faqat fayl mazmunini ko'zdan kechirish orqali, Render build
    log'iga tayangan holda amalga oshiriladi.
 

@@ -53,7 +53,7 @@ pytest
 
 API'ni lokal ishga tushirish:
 ```powershell
-uvicorn api.main:app --reload
+uvicorn main:app --app-dir api --reload
 ```
 
 Docker haqida: `Dockerfile` mavjud va commit qilinadi, lekin **lokalda `docker build`/`docker run`
