@@ -13,8 +13,9 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "api"))
 
-from preprocess import build_preprocessor, load_data  # noqa: E402
-from schema import Customer  # noqa: E402
+from schema import Customer
+
+from preprocess import build_preprocessor, load_data
 
 DATA_PATH = ROOT / "data" / "telco_churn.csv"
 MODEL_PATH = ROOT / "models" / "model.pkl"

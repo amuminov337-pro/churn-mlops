@@ -96,7 +96,7 @@ if st.button("Predict"):
         risk = result["risk"]
 
         st.metric("Churn ehtimoli", f"{probability * 100:.1f}%")
-        st.progress(min(max(int(round(probability * 100)), 0), 100))
+        st.progress(min(max(round(probability * 100), 0), 100))
 
         if risk == "high":
             st.error(f"Yuqori risk ({risk})")

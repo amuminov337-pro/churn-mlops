@@ -7,14 +7,13 @@ Inference vaqtida src/preprocess.py dagi bir xil pipeline ishlatiladi
 import json
 import os
 from pathlib import Path
-from typing import List
+from typing import Annotated
 
 import joblib
 import pandas as pd
 import sklearn
 from fastapi import Body, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
 from schema import Customer, PredictResponse
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -46,7 +45,7 @@ def _risk_label(probability: float) -> str:
     return "high" if probability >= THRESHOLD else "low"
 
 
-def _score(customers: List[Customer]) -> List[PredictResponse]:
+def _score(customers: list[Customer]) -> list[PredictResponse]:
     """Customer ro'yxatini model kutgan DataFrame'ga aylantirib, baholaydi."""
     df = pd.DataFrame([c.model_dump() for c in customers])
     probabilities = model.predict_proba(df)[:, 1]
@@ -88,7 +87,7 @@ def predict(customer: Customer):
     return _score([customer])[0]
 
 
-@app.post("/predict/batch", response_model=List[PredictResponse])
-def predict_batch(customers: List[Customer] = Body(..., max_length=500)):
+@app.post("/predict/batch", response_model=list[PredictResponse])
+def predict_batch(customers: Annotated[list[Customer], Body(..., max_length=500)]):
     """Bir nechta mijoz uchun (max 500) churn ehtimolini baholaydi."""
     return _score(customers)
