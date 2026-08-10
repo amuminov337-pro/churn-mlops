@@ -8,12 +8,19 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY api/ ./api/
-COPY src/ ./src/
-COPY models/ ./models/
+COPY src ./src
+COPY api ./api
+COPY models ./models
 
-ENV MODEL_PATH=models/model.pkl
+RUN useradd --create-home appuser
+USER appuser
+
+ENV MODEL_PATH=/app/models/model.pkl
+ENV PYTHONUNBUFFERED=1
+ENV PORT=8000
+
+WORKDIR /app/api
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "uvicorn main:app --app-dir api --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT}"]
