@@ -1,9 +1,16 @@
 "use client";
 
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
-import { AlertTriangle, CheckCircle2, CreditCard, Loader2, User, Wifi } from "lucide-react";
+import { AlertTriangle, CheckCircle2, CreditCard, HelpCircle, Loader2, User, Wifi } from "lucide-react";
 import { customerSchema, type Customer } from "@/lib/schema";
-import { predictChurn, warmUpServer, type PredictResponse } from "@/lib/api";
+import {
+  explainChurn,
+  predictChurn,
+  warmUpServer,
+  type DriverImpact,
+  type ExplainResponse,
+  type PredictResponse,
+} from "@/lib/api";
 
 const YES_NO = ["Yes", "No"];
 const INTERNET_DEPENDENT = ["Yes", "No", "No internet service"];
@@ -31,12 +38,17 @@ const defaultCustomer: Customer = {
 };
 
 type Status = "idle" | "loading" | "retrying" | "error" | "success";
+type ExplainStatus = "idle" | "loading" | "error" | "success";
 
 export default function Home() {
   const [form, setForm] = useState<Customer>(defaultCustomer);
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [result, setResult] = useState<PredictResponse | null>(null);
+  const [submittedCustomer, setSubmittedCustomer] = useState<Customer | null>(null);
+  const [explainStatus, setExplainStatus] = useState<ExplainStatus>("idle");
+  const [explainResult, setExplainResult] = useState<ExplainResponse | null>(null);
+  const [explainError, setExplainError] = useState<string | null>(null);
 
   useEffect(() => {
     // Sahifa ochilganda fonda /health'ga so'rov yuboriladi -- Render serverini
@@ -77,16 +89,37 @@ export default function Home() {
     setStatus("loading");
     setErrorMessage(null);
     setResult(null);
+    setSubmittedCustomer(null);
+    setExplainStatus("idle");
+    setExplainResult(null);
+    setExplainError(null);
 
     try {
       const response = await predictChurn(parsed.data, () => setStatus("retrying"));
       setResult(response);
+      setSubmittedCustomer(parsed.data);
       setStatus("success");
     } catch {
       setStatus("error");
       setErrorMessage(
         "API ishlamayapti yoki javob bermadi. Bir necha soniyadan so'ng qayta urinib ko'ring."
       );
+    }
+  }
+
+  async function handleExplain() {
+    if (!submittedCustomer) return;
+
+    setExplainStatus("loading");
+    setExplainError(null);
+
+    try {
+      const response = await explainChurn(submittedCustomer);
+      setExplainResult(response);
+      setExplainStatus("success");
+    } catch {
+      setExplainStatus("error");
+      setExplainError("Tushuntirishni olishning iloji bo'lmadi, qayta urinib ko'ring");
     }
   }
 
@@ -266,7 +299,17 @@ export default function Home() {
           </div>
         )}
 
-        {status === "success" && result && <ResultCard result={result} />}
+        {status === "success" && result && (
+          <>
+            <ResultCard result={result} />
+            <ExplainSection
+              status={explainStatus}
+              result={explainResult}
+              error={explainError}
+              onExplain={handleExplain}
+            />
+          </>
+        )}
       </div>
     </div>
   );
@@ -377,5 +420,89 @@ function ResultCard({ result }: { result: PredictResponse }) {
         />
       </div>
     </div>
+  );
+}
+
+function ExplainSection({
+  status,
+  result,
+  error,
+  onExplain,
+}: {
+  status: ExplainStatus;
+  result: ExplainResponse | null;
+  error: string | null;
+  onExplain: () => void;
+}) {
+  const isLoading = status === "loading";
+
+  return (
+    <div className="mt-6">
+      <button
+        type="button"
+        onClick={onExplain}
+        disabled={isLoading}
+        className="flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+      >
+        {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <HelpCircle className="h-4 w-4" />}
+        {isLoading ? "Tahlil qilinmoqda..." : "Nega?"}
+      </button>
+
+      {status === "error" && error && (
+        <p className="mt-2 flex items-center gap-1.5 text-sm text-red-600 dark:text-red-400">
+          <AlertTriangle className="h-4 w-4 shrink-0" />
+          {error}
+        </p>
+      )}
+
+      {status === "success" && result && (
+        <div className="mt-3 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
+            {result.explanation}
+          </p>
+
+          {result.top_drivers.length > 0 && (
+            <div className="mt-4">
+              <h3 className="mb-2 text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+                Asosiy omillar
+              </h3>
+              <DriverList drivers={result.top_drivers.slice(0, 5)} />
+            </div>
+          )}
+
+          {result.source === "template" && (
+            <p className="mt-3 text-xs text-zinc-400 dark:text-zinc-500">
+              Shablon javob (AI mavjud emas)
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DriverList({ drivers }: { drivers: DriverImpact[] }) {
+  const maxImpact = Math.max(...drivers.map((driver) => Math.abs(driver.impact)), 0.0001);
+
+  return (
+    <ul className="space-y-2">
+      {drivers.map((driver) => {
+        const widthPercent = Math.round((Math.abs(driver.impact) / maxImpact) * 100);
+        return (
+          <li key={driver.feature}>
+            <div className="mb-1 flex items-center justify-between gap-2 text-sm">
+              <span className="text-zinc-700 dark:text-zinc-300">{driver.feature}</span>
+              <span className="text-zinc-500 dark:text-zinc-400">{driver.impact.toFixed(3)}</span>
+            </div>
+            <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+              <div
+                className="h-full rounded-full bg-zinc-500 dark:bg-zinc-400"
+                style={{ width: `${widthPercent}%` }}
+              />
+            </div>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

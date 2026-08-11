@@ -52,3 +52,38 @@ export async function warmUpServer(): Promise<void> {
     // jim o'tkazib yuboriladi -- bu shunchaki "uyg'otish" urinishi
   }
 }
+
+const EXPLAIN_TIMEOUT_MS = 60_000;
+
+export interface DriverImpact {
+  feature: string;
+  impact: number;
+}
+
+export interface ExplainResponse {
+  explanation: string;
+  source: "llm" | "template";
+  top_drivers: DriverImpact[];
+  churn_probability: number;
+  risk: string;
+}
+
+/**
+ * /predict'dan farqli o'laroq bu yerda avtomatik retry yo'q -- LLM chaqiruvi
+ * sekinroq (backend'da 20 soniya timeout + 1 retry bor, shuning uchun frontend
+ * timeout'i kattaroq). Xato bo'lsa, foydalanuvchi "Nega?" tugmasini qayta bosadi.
+ */
+export async function explainChurn(customer: Customer): Promise<ExplainResponse> {
+  const response = await fetch(`${API_URL}/explain`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(customer),
+    signal: AbortSignal.timeout(EXPLAIN_TIMEOUT_MS),
+  });
+
+  if (!response.ok) {
+    throw new Error(`API ${response.status} xato qaytardi`);
+  }
+
+  return (await response.json()) as ExplainResponse;
+}
