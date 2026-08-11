@@ -4,6 +4,8 @@ Bu yerdagi maydonlar src/preprocess.py dagi ustunlarga va frontend forma
 maydonlariga aynan mos bo'lishi shart (bittasi o'zgarsa, uchtasi ham yangilanadi).
 """
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict
 
 
@@ -67,3 +69,20 @@ class PredictResponse(BaseModel):
     risk: str
     threshold: float
     model_version: str
+
+
+class DriverImpact(BaseModel):
+    """Modelning bitta bashorat uchun ajratgan xususiyati va uning hissasi."""
+
+    feature: str
+    impact: float
+
+
+class ExplainResponse(BaseModel):
+    """/explain javob tanasi."""
+
+    explanation: str
+    source: Literal["llm", "template"]
+    top_drivers: list[DriverImpact]
+    churn_probability: float
+    risk: str

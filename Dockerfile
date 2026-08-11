@@ -8,6 +8,9 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+COPY requirements-ai.txt .
+RUN pip install --no-cache-dir -r requirements-ai.txt
+
 COPY src ./src
 COPY api ./api
 COPY models ./models

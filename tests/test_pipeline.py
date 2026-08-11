@@ -75,3 +75,24 @@ def test_api_health_and_predict():
     assert "churn_probability" in body
     assert "risk" in body
     assert 0.0 <= body["churn_probability"] <= 1.0
+
+
+def test_api_explain_fallback():
+    if not MODEL_PATH.exists():
+        pytest.skip("model.pkl topilmadi, avval train.py ishga tushiring")
+
+    from fastapi.testclient import TestClient
+    from main import app
+
+    client = TestClient(app)
+
+    payload = Customer.model_config["json_schema_extra"]["example"]
+    response = client.post("/explain", json=payload)
+    assert response.status_code == 200
+    body = response.json()
+    # CI/lokal muhitda LLM kalitlari sozlanmagan -- shablon fallback ishlatilishi kerak.
+    assert body["source"] == "template"
+    assert body["explanation"]
+    assert 0.0 <= body["churn_probability"] <= 1.0
+    assert body["risk"] in {"high", "low"}
+    assert isinstance(body["top_drivers"], list)

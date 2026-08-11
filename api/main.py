@@ -1,10 +1,11 @@
-"""FastAPI ilovasi: /health va /predict endpointlari uchun kirish nuqtasi.
+"""FastAPI ilovasi: /health, /predict va /explain endpointlari uchun kirish nuqtasi.
 
 Inference vaqtida src/preprocess.py dagi bir xil pipeline ishlatiladi
 (u train paytida model.pkl ichiga Pipeline sifatida saqlangan).
 """
 
 import json
+import logging
 import os
 from pathlib import Path
 from typing import Annotated
@@ -15,6 +16,15 @@ import sklearn
 from fastapi import Body, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from schema import Customer, PredictResponse
+
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv()
+except ImportError:
+    pass  # Production'da (Render) muhit o'zgaruvchilari platforma orqali beriladi.
+
+logger = logging.getLogger(__name__)
 
 ROOT = Path(__file__).resolve().parent.parent
 MODEL_PATH = os.getenv("MODEL_PATH", str(ROOT / "models" / "model.pkl"))
@@ -59,6 +69,16 @@ def _score(customers: list[Customer]) -> list[PredictResponse]:
         )
         for probability in probabilities
     ]
+
+
+try:
+    from explain import router as explain_router
+
+    app.include_router(explain_router)
+except Exception:
+    # openai/langfuse ixtiyoriy AI bog'liqliklar -- ular o'rnatilmagan yoki
+    # noto'g'ri sozlangan bo'lsa ham /health va /predict ishlashda davom etishi kerak.
+    logger.exception("/explain endpointi yuklanmadi (ixtiyoriy AI bog'liqlik)")
 
 
 @app.get("/")
