@@ -134,8 +134,7 @@ export default function Home() {
             Telecom Churn Predictor
           </h1>
           <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-            {"Bu faqat lokal/demo frontend. Production frontend Next.js + Vercel'da bo'ladi; " +
-              "bu sahifa API'ni sinash uchun."}
+            Real-time churn bashorati — FastAPI backend orqali ishlaydi.
           </p>
         </header>
 
