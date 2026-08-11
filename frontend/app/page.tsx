@@ -11,8 +11,15 @@ import {
   type ExplainResponse,
   type PredictResponse,
 } from "@/lib/api";
-
-const YES_NO = ["Yes", "No"];
+import {
+  contractOptions,
+  genderOptions,
+  internetServiceOptions,
+  paymentMethodOptions,
+  yesNoNoInternetOptions,
+  yesNoNoPhoneOptions,
+  yesNoOptions,
+} from "@/lib/labels";
 
 const defaultCustomer: Customer = {
   gender: "Female",
@@ -143,25 +150,25 @@ export default function Home() {
             <SelectField
               label="Jinsi (gender)"
               value={form.gender}
-              options={["Female", "Male"]}
+              options={genderOptions}
               onChange={(v) => update("gender", v)}
             />
             <SelectField
               label="Keksa fuqaro (SeniorCitizen)"
               value={form.SeniorCitizen === 1 ? "Yes" : "No"}
-              options={YES_NO}
+              options={yesNoOptions}
               onChange={(v) => update("SeniorCitizen", v === "Yes" ? 1 : 0)}
             />
             <SelectField
               label="Turmush o'rtog'i bor (Partner)"
               value={form.Partner}
-              options={YES_NO}
+              options={yesNoOptions}
               onChange={(v) => update("Partner", v)}
             />
             <SelectField
               label="Qaramog'idagilar bor (Dependents)"
               value={form.Dependents}
-              options={YES_NO}
+              options={yesNoOptions}
               onChange={(v) => update("Dependents", v)}
             />
             <NumberField
@@ -178,61 +185,89 @@ export default function Home() {
             <SelectField
               label="Telefon xizmati (PhoneService)"
               value={form.PhoneService}
-              options={YES_NO}
+              options={yesNoOptions}
               onChange={(v) => update("PhoneService", v)}
             />
             <SelectField
               label="Bir nechta liniya (MultipleLines)"
               value={form.MultipleLines}
-              options={noPhone ? ["No phone service"] : YES_NO}
+              options={
+                noPhone
+                  ? yesNoNoPhoneOptions.filter((option) => option.value === "No phone service")
+                  : yesNoOptions
+              }
               onChange={(v) => update("MultipleLines", v)}
               disabled={noPhone}
             />
             <SelectField
               label="Internet xizmati (InternetService)"
               value={form.InternetService}
-              options={["DSL", "Fiber optic", "No"]}
+              options={internetServiceOptions}
               onChange={(v) => update("InternetService", v)}
             />
             <SelectField
               label="Onlayn xavfsizlik (OnlineSecurity)"
               value={form.OnlineSecurity}
-              options={noInternet ? ["No internet service"] : YES_NO}
+              options={
+                noInternet
+                  ? yesNoNoInternetOptions.filter((option) => option.value === "No internet service")
+                  : yesNoOptions
+              }
               onChange={(v) => update("OnlineSecurity", v)}
               disabled={noInternet}
             />
             <SelectField
               label="Onlayn zaxira (OnlineBackup)"
               value={form.OnlineBackup}
-              options={noInternet ? ["No internet service"] : YES_NO}
+              options={
+                noInternet
+                  ? yesNoNoInternetOptions.filter((option) => option.value === "No internet service")
+                  : yesNoOptions
+              }
               onChange={(v) => update("OnlineBackup", v)}
               disabled={noInternet}
             />
             <SelectField
               label="Qurilma himoyasi (DeviceProtection)"
               value={form.DeviceProtection}
-              options={noInternet ? ["No internet service"] : YES_NO}
+              options={
+                noInternet
+                  ? yesNoNoInternetOptions.filter((option) => option.value === "No internet service")
+                  : yesNoOptions
+              }
               onChange={(v) => update("DeviceProtection", v)}
               disabled={noInternet}
             />
             <SelectField
               label="Texnik yordam (TechSupport)"
               value={form.TechSupport}
-              options={noInternet ? ["No internet service"] : YES_NO}
+              options={
+                noInternet
+                  ? yesNoNoInternetOptions.filter((option) => option.value === "No internet service")
+                  : yesNoOptions
+              }
               onChange={(v) => update("TechSupport", v)}
               disabled={noInternet}
             />
             <SelectField
               label="Streaming TV"
               value={form.StreamingTV}
-              options={noInternet ? ["No internet service"] : YES_NO}
+              options={
+                noInternet
+                  ? yesNoNoInternetOptions.filter((option) => option.value === "No internet service")
+                  : yesNoOptions
+              }
               onChange={(v) => update("StreamingTV", v)}
               disabled={noInternet}
             />
             <SelectField
               label="Streaming kino (StreamingMovies)"
               value={form.StreamingMovies}
-              options={noInternet ? ["No internet service"] : YES_NO}
+              options={
+                noInternet
+                  ? yesNoNoInternetOptions.filter((option) => option.value === "No internet service")
+                  : yesNoOptions
+              }
               onChange={(v) => update("StreamingMovies", v)}
               disabled={noInternet}
             />
@@ -242,24 +277,19 @@ export default function Home() {
             <SelectField
               label="Shartnoma turi (Contract)"
               value={form.Contract}
-              options={["Month-to-month", "One year", "Two year"]}
+              options={contractOptions}
               onChange={(v) => update("Contract", v)}
             />
             <SelectField
               label="Qog'ozsiz billing (PaperlessBilling)"
               value={form.PaperlessBilling}
-              options={YES_NO}
+              options={yesNoOptions}
               onChange={(v) => update("PaperlessBilling", v)}
             />
             <SelectField
               label="To'lov usuli (PaymentMethod)"
               value={form.PaymentMethod}
-              options={[
-                "Electronic check",
-                "Mailed check",
-                "Bank transfer (automatic)",
-                "Credit card (automatic)",
-              ]}
+              options={paymentMethodOptions}
               onChange={(v) => update("PaymentMethod", v)}
             />
             <NumberField
@@ -334,7 +364,7 @@ function SelectField({
 }: {
   label: string;
   value: string;
-  options: string[];
+  options: { value: string; label: string }[];
   onChange: (value: string) => void;
   disabled?: boolean;
 }) {
@@ -348,8 +378,8 @@ function SelectField({
         className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-zinc-900 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50 dark:disabled:bg-zinc-900"
       >
         {options.map((option) => (
-          <option key={option} value={option}>
-            {option}
+          <option key={option.value} value={option.value}>
+            {option.label}
           </option>
         ))}
       </select>
