@@ -13,7 +13,6 @@ import {
 } from "@/lib/api";
 
 const YES_NO = ["Yes", "No"];
-const INTERNET_DEPENDENT = ["Yes", "No", "No internet service"];
 
 const defaultCustomer: Customer = {
   gender: "Female",
@@ -135,8 +134,8 @@ export default function Home() {
             Telecom Churn Predictor
           </h1>
           <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-            Bu faqat lokal/demo frontend. Production frontend Next.js + Vercel'da bo'ladi;
-            bu sahifa API'ni sinash uchun.
+            {"Bu faqat lokal/demo frontend. Production frontend Next.js + Vercel'da bo'ladi; " +
+              "bu sahifa API'ni sinash uchun."}
           </p>
         </header>
 
